@@ -4,18 +4,20 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class AbstractNeuron implements Neuron {
-    private final static double T = 1;
+    private final static double SIGMA_COEFFICIENT = 2;
+
+    private static final double MUTATION_RATE = 0.1;
+
+    private static final double[] PERIOD_EDGES = {0.0, 1.0};
+    private static final double PERIOD_SIZE = PERIOD_EDGES[1] - PERIOD_EDGES[0];
+    private static final int POWER_OF_2_AMOUNT_OF_CHUNKS = 8;
+    private static final int AMOUNT_OF_CHUNKS = 1 << POWER_OF_2_AMOUNT_OF_CHUNKS;
+    private static final double CHUNK_SIZE = PERIOD_SIZE / AMOUNT_OF_CHUNKS;
+
     private Random r = new Random();
 
     private ArrayList<Double> weights = new ArrayList<>();
     private double value;
-
-    private static final double mutationRate = 0.01;
-    private static final double mutationStrength = 0;
-
-    private static final double[] chunk = {0.0, 1.0};
-    private static final int amountOfChunks = 100;
-    private static final double chunkSize = (chunk[1] - chunk[0]) / amountOfChunks;
 
     AbstractNeuron() {
     }
@@ -25,8 +27,11 @@ public abstract class AbstractNeuron implements Neuron {
     }
 
     private ArrayList<Double> calculateGenes(ArrayList<Double> first, ArrayList<Double> second) {
-        ArrayList<Double> result = crossingOver(first, second);
-        mutate(result);
+        ArrayList<Double> result = new ArrayList<>();
+
+        for (int i = 0; i < first.size(); i++)
+            result.add(calculateGen(first.get(i), second.get(i)));
+
         return result;
     }
 
@@ -40,38 +45,34 @@ public abstract class AbstractNeuron implements Neuron {
         updateValue(sum);
     }
 
-    private ArrayList<Double> crossingOver(ArrayList<Double> first, ArrayList<Double> second) {
+    private double calculateGen(double first, double second) {
+        int firstChunk = GrayCode.code(toChunk(first));
+        int secondChunk = GrayCode.code(toChunk(second));
 
-
-        if (first.size() != second.size())
-            throw new IllegalArgumentException();
-
-        Random r = new Random();
-
-        int threshold = r.nextInt(first.size());
-        ArrayList<Double> result1 = new ArrayList<>(first.subList(0, threshold));
-        ArrayList<Double> result2 = new ArrayList<>(second.subList(threshold, second.size()));
-
-        if (r.nextInt(2) == 0) {
-            result1.addAll(result2);
-            return result1;
-        } else {
-            result2.addAll(result1);
-            return result2;
-        }
+        int result = GrayCode.decode(mutate(crossingOver(firstChunk, secondChunk)));
+        return fromChunk(result);
     }
 
-    private void mutate(ArrayList<Double> list) {
-        Random r = new Random();
+    private int crossingOver(int firstCode, int secondCode) {
+        int threshold = r.nextInt(POWER_OF_2_AMOUNT_OF_CHUNKS);
+        int lastBitsMask = (1 << threshold) - 1;
+        int firstBitsMask = Integer.MAX_VALUE - lastBitsMask;
 
-        for (int i = 0; i < list.size(); i++)
-            if (r.nextDouble() < mutationRate)
-                list.set(i, r.nextDouble() * mutationStrength);
+        return r.nextBoolean() ?
+                (firstCode & firstBitsMask) +
+                        (secondCode & lastBitsMask) :
+                (firstCode & lastBitsMask) +
+                        (secondCode & firstBitsMask);
     }
 
-    private int toChunk(double num) {
-        return (int) Math.round(Math.ceil(num * amountOfChunks));
+    private int mutate(int gen) {
+        for (int i = 0; i < POWER_OF_2_AMOUNT_OF_CHUNKS; i++)
+            if (r.nextDouble() < MUTATION_RATE)
+                gen = ((gen >> i) & 1) == 1 ? gen | (1 << i) : gen & ~(1 << i); //reverses bit to mutate
+        return gen;
     }
+
+
 
     @Override
     public double getValue() {
@@ -96,11 +97,36 @@ public abstract class AbstractNeuron implements Neuron {
         this.weights = weights;
     }
 
+    private int toChunk(double weight) {
+        checkWeightRange(weight);
+        return (int) Math.round(Math.ceil(weight * AMOUNT_OF_CHUNKS)) - 1;
+    }
+
+    private double fromChunk(int chunk) {
+        return chunk * CHUNK_SIZE + 0.5 * CHUNK_SIZE;
+    }
+
+    private void checkWeightRange(double weight) {
+        if (weight < PERIOD_EDGES[0] || weight > PERIOD_EDGES[1])
+            throw new IllegalArgumentException();
+    }
+
     private double sigma(double x) {
-        return 1 / (1 + Math.exp(-T * x));
+        return 1 / (1 + Math.exp(-SIGMA_COEFFICIENT * x));
     }
 
     private double sigmaDerivative(double x) {
         return sigma(x) * (1 - sigma(x));
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("[ ");
+        for (double w : weights)
+            str.append(Integer.toBinaryString(GrayCode.code(toChunk(w)))).append(" ");
+        str.append("] ");
+
+        return str.toString();
     }
 }

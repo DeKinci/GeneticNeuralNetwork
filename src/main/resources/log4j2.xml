@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="TRACE">
+
+    <Appenders>
+        <File name="All" fileName="logs/all.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SS} - %msg%n"/>
+        </File>
+
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="All" level="all"/>
+            <AppenderRef ref="Console" level="warn"/>
+        </Root>
+    </Loggers>
+</Configuration>

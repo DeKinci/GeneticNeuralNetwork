@@ -1,6 +1,7 @@
 package PinNN.nn.network;
 
 import PinNN.nn.layer.*;
+import PinNN.nn.neuron.Neuron;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,6 +100,16 @@ public class GeneticNeuralNetwork implements Comparable {
 
     @Override
     public String toString() {
-        return "fitness = " + fitness;
+        StringBuilder str = new StringBuilder();
+
+        for (AbstractLayer layer : layers) {
+            str.append("{ ");
+            for (Neuron neuron: layer.getNeurons()) {
+                str.append(neuron);
+            }
+            str.append("} ");
+        }
+
+        return str.toString();
     }
 }

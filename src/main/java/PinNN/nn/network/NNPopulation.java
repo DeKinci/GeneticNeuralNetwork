@@ -2,6 +2,8 @@ package PinNN.nn.network;
 
 import PinNN.nn.training.TrainingSet;
 import PinNN.nn.training.TrainingSetGenerator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +13,7 @@ public class NNPopulation {
     private static long generation = 0;
     private ArrayList<GeneticNeuralNetwork> networks;
     private int size;
+    Logger log = LogManager.getLogger();
 
     public NNPopulation(int size, int[] architecture) {
         networks = new ArrayList<>();
@@ -21,6 +24,7 @@ public class NNPopulation {
     }
 
     public void evolve(TrainingSetGenerator trainingSetGenerator, double partSurvives) {
+        generation++;
         go(trainingSetGenerator);
         killWeakest(partSurvives);
         breed();
@@ -43,6 +47,8 @@ public class NNPopulation {
 
     public void go(TrainingSetGenerator setGen) {
         double avg = 0, max = Double.MIN_VALUE, min = Double.MAX_VALUE;
+        GeneticNeuralNetwork worse = null;
+        GeneticNeuralNetwork best = null;
 
         for (GeneticNeuralNetwork network : networks) {
             double fitness = 0d;
@@ -58,14 +64,19 @@ public class NNPopulation {
             network.setFitness(fitness);
 
             avg += fitness;
-            if (fitness > max)
+            if (fitness > max) {
                 max = fitness;
-            if (fitness < min)
+                best = network;
+            }
+            if (fitness < min) {
                 min = fitness;
+                worse = network;
+            }
         }
 
         avg /= networks.size();
-        printFitnessInfo(avg, max, min);
+
+        stats(avg, max, min, worse, best);
     }
 
     public void breed() {
@@ -82,9 +93,19 @@ public class NNPopulation {
         breed();
     }
 
-    private void printFitnessInfo(double avg, double max, double min) {
-        System.out.printf("Generation %d\t\tAvg %.5f\t   Min %.5f\t Max %.5f\n",
-                generation++, avg, min, max);
+    private void stats(double avg, double max, double min,
+                       GeneticNeuralNetwork worse, GeneticNeuralNetwork best) {
+
+        if (generation % 10 == 0)
+            log.trace(buildLog(avg, max, min, worse, best));
+    }
+
+    private String buildLog(double avg, double max, double min,
+                            GeneticNeuralNetwork worse, GeneticNeuralNetwork best) {
+        return String.format("Generation %d\tAvg %.5f\t   Min %.5f\t Max %.5f\t\t",
+                generation, avg, min, max) +
+                "Best: " + best + "\t" +
+                "Worse: " + worse + "\n";
     }
 
     private boolean checkPart(double part) {
