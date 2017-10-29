@@ -98,14 +98,19 @@ public class NNPopulation {
 
         if (generation % 10 == 0)
             log.trace(buildLog(avg, max, min, worse, best));
+
+        if (generation % 100 == 0)
+            System.out.println(buildLog(avg, max, min, worse, best));
     }
 
     private String buildLog(double avg, double max, double min,
                             GeneticNeuralNetwork worse, GeneticNeuralNetwork best) {
-        return String.format("Generation %d\tAvg %.5f\t   Min %.5f\t Max %.5f\t\t",
-                generation, avg, min, max) +
-                "Best: " + best + "\t" +
-                "Worse: " + worse + "\n";
+//        return String.format("Generation %d\tAvg %.5f\t   Min %.5f\t Max %.5f\t\t",
+//                generation, avg, min, max) +
+//                "Best: " + best + "\t" +
+//                "Worse: " + worse + "\n";
+        return String.format("Generation %d\tAvg %.5f\t   Min %.5f\t Max %.5f\t\n",
+                generation, avg, min, max);
     }
 
     private boolean checkPart(double part) {
