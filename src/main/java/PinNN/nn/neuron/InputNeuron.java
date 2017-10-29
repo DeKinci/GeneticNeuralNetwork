@@ -2,12 +2,17 @@ package PinNN.nn.neuron;
 
 import java.util.ArrayList;
 
-public class InputNeuron extends Neuron {
+public class InputNeuron extends AbstractNeuron {
     public InputNeuron(double data) {
-        super(data);
+        addRandomWeight();
+
+        ArrayList<Double> dataList = new ArrayList<>();
+        dataList.add(data);
+
+        update(dataList);
     }
 
-    @Override
-    public void update(ArrayList<Double> data) {
+    public InputNeuron(Neuron first, Neuron second) {
+        super(first, second);
     }
 }

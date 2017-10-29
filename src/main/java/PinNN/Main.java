@@ -1,25 +1,12 @@
 package PinNN;
 
-import PinNN.nn.NeuralNetwork;
-
-import java.util.ArrayList;
+import PinNN.nn.NNFacade;
 
 public class Main {
     public static void main(String... args) {
-        int[][] arch = {
-                {1},
-                {1}
-        };
-        NeuralNetwork nn = new NeuralNetwork(arch);
+        int[] arch = {2, 2, 1};
 
-        ArrayList<Double> data = new ArrayList<>();
-        data.add(1.0);
-
-        nn.setData(data);
-        nn.compute();
-
-        ArrayList<Double> results = nn.getResults();
-        for (double res : results)
-            System.out.print(res + " ");
+        NNFacade network = new NNFacade(arch, 1000);
+        network.doTheEvolution(1000);
     }
 }

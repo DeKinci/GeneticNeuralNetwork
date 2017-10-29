@@ -1,15 +1,24 @@
 package PinNN.nn.layer;
 
+import PinNN.nn.neuron.AbstractNeuron;
 import PinNN.nn.neuron.InputNeuron;
+import PinNN.nn.neuron.Neuron;
 
 import java.util.ArrayList;
 
-public class InputLayer extends Layer {
+public class InputLayer extends AbstractLayer {
     public InputLayer(int neuronsInLayer) {
-        super(neuronsInLayer);
-
         for (int i = 0; i < neuronsInLayer; i++)
             neurons.add(new InputNeuron(0));
+    }
+
+    public InputLayer(InputLayer first, InputLayer second) {
+        super(first, second);
+    }
+
+    @Override
+    protected AbstractNeuron createNeuron(Neuron first, Neuron second) {
+        return new InputNeuron(first, second);
     }
 
     @Override
